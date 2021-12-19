@@ -46,11 +46,13 @@ def save_btn():
 
 
 def close_btn():
-    global create_account_frame, home_frame, login_frame, closed_frame, transfer_frame
+    global create_account_frame, home_frame, login_frame, closed_frame, transfer_frame, deposit_frame, withdraw_frame
     create_account_frame.pack_forget()
     home_frame.pack_forget()
     login_frame.pack_forget()
     transfer_frame.pack_forget()
+    deposit_frame.pack_forget()
+    withdraw_frame.pack_forget()
     closed_frame.pack()
 
 
@@ -65,8 +67,10 @@ def go_to_transfer_frame():
 
 
 def transfer_cancel_btn():
-    global login_frame, transfer_frame
+    global login_frame, transfer_frame, deposit_frame, withdraw_frame
     transfer_frame.pack_forget()
+    deposit_frame.pack_forget()
+    withdraw_frame.pack_forget()
     login_frame.pack()
 
 
@@ -77,6 +81,131 @@ def transfer_btn():
     login_frame.pack()
     balance_login_lbl = tk.Label(login_frame, text=f"balance: {myAcc.balance}", font=('calibri', 27), fg='white',
                                  bg='black').grid(row=2, column=4, columnspan=2)
+
+    
+    
+def withdraw_btn():
+    global login_frame, withdraw_frame
+    global t1_withdraw, t2_withdraw, t3_withdraw, t4_withdraw, t5_withdraw
+    t1_withdraw.delete(0, tk.END)
+    t2_withdraw.delete(0, tk.END)
+    t3_withdraw.delete(0, tk.END)
+    t4_withdraw.delete(0, tk.END)
+    t5_withdraw.delete(0, tk.END)
+    login_frame.pack_forget()
+    withdraw_frame.pack()
+
+
+def deposit_btn():
+    global login_frame, deposit_frame
+    global t1_deposit, t2_deposit, t3_deposit, t4_deposit, t5_deposit
+    t1_deposit.delete(0, tk.END)
+    t2_deposit.delete(0, tk.END)
+    t3_deposit.delete(0, tk.END)
+    t4_deposit.delete(0, tk.END)
+    t5_deposit.delete(0, tk.END)
+    login_frame.pack_forget()
+    deposit_frame.pack()
+
+def show_btn_deposit():
+    global t1_deposit, t2_deposit, t3_deposit, t4_deposit, t5_deposit
+    global myAcc
+    t1_deposit.delete(0, tk.END)
+    t2_deposit.delete(0, tk.END)
+    t3_deposit.delete(0, tk.END)
+    t4_deposit.delete(0, tk.END)
+    t5_deposit.delete(0, tk.END)
+    t1_deposit.insert(0, myAcc.accNo)
+    t3_deposit.insert(0, myAcc.name)
+    t4_deposit.insert(0, myAcc.phone)
+    messagebox.showinfo("guideline", "enter pin and Amount")
+
+
+def show_btn_withdraw():
+    global t1_withdraw, t2_withdraw, t3_withdraw, t4_withdraw, t5_withdraw
+    global myAcc
+    t1_withdraw.delete(0, tk.END)
+    t2_withdraw.delete(0, tk.END)
+    t3_withdraw.delete(0, tk.END)
+    t4_withdraw.delete(0, tk.END)
+    t5_withdraw.delete(0, tk.END)
+    t1_withdraw.insert(0, myAcc.accNo)
+    t3_withdraw.insert(0, myAcc.name)
+    t4_withdraw.insert(0, myAcc.phone)
+    messagebox.showinfo("guideline", "enter pin and Amount")
+
+
+def delete_btn_login():
+    global login_frame, home_frame, myAcc, e1, e2
+    click = messagebox.askyesno("delete", "do you want to delete Your account")
+    if click:
+        cur.execute(f"DELETE FROM database WHERE Account = {myAcc.accNo}")
+        conn.commit()
+        e1.delete(0, tk.END)
+        e2.delete(0, tk.END)
+        login_frame.pack_forget()
+        home_frame.pack()
+    else:
+        return
+
+
+def update_withdraw():
+    global t2_withdraw, t5_withdraw, myAcc, balance_login_lbl, login_frame, withdraw_frame
+    if t2_withdraw.get() == myAcc.pin:
+        try:
+            amount_withdraw = int(t5_withdraw.get())
+            if amount_withdraw < myAcc.balance:
+                click = messagebox.askyesno('withdraw', "do you want to withdraw?")
+                if click:
+                    myAcc.balance -= amount_withdraw
+                    cur.execute(f"UPDATE database SET balance = {myAcc.balance} WHERE Account = {myAcc.accNo}")
+                    conn.commit()
+                    balance_login_lbl = tk.Label(login_frame, text=f"balance: {myAcc.balance}", font=('calibri', 27),
+                                                 fg='white',
+                                                 bg='black').grid(row=2, column=4, columnspan=2)
+                    messagebox.showinfo('info', 'amount has been withdraw')
+                    withdraw_frame.pack_forget()
+                    login_frame.pack()
+                else:
+                    return
+            else:
+                messagebox.showwarning('warning', 'insufficient amount')
+                return
+        except:
+            messagebox.showwarning('error', "please reenter amount")
+            return
+    else:
+        messagebox.showwarning('warning', 'invalid pin')
+        return
+
+
+def update_deposit():
+    global t2_deposit, t5_deposit, myAcc, balance_login_lbl, login_frame, deposit_frame
+    if t2_deposit.get() == myAcc.pin:
+        try:
+            amount_deposit = int(t5_deposit.get())
+
+            click = messagebox.askyesno('withdraw', "do you want to deposit?")
+            if click:
+                myAcc.balance += amount_deposit
+                cur.execute(f"UPDATE database SET balance = {myAcc.balance} WHERE Account = {myAcc.accNo}")
+                conn.commit()
+                balance_login_lbl = tk.Label(login_frame, text=f"balance: {myAcc.balance}", font=('calibri', 27),
+                                                 fg='white',
+                                                 bg='black').grid(row=2, column=4, columnspan=2)
+                messagebox.showinfo('info', 'amount has been deposit')
+                deposit_frame.pack_forget()
+                login_frame.pack()
+            else:
+                return
+
+        except:
+            messagebox.showwarning('error', "please reenter amount")
+            return
+    else:
+        messagebox.showwarning('warning', 'invalid pin')
+        return
+
 
 
 def checksum(x):
@@ -264,15 +393,15 @@ label_img = tk.Label(login_frame, image=img).grid(row=0, column=0, rowspan=10, c
 
 b1 = tk.Button(login_frame, text="Delete Account", font =
                ('calibri', 20, 'bold'),
-            borderwidth ='4', activeforeground="#678983", activebackground="#B4FE98", width=20, pady=10)
+            borderwidth ='4', activeforeground="#678983", activebackground="#B4FE98", width=20, pady=10, command=delete_btn_login)
 
 b2 = tk.Button(login_frame, text="Withdraw", font=
                     ('calibri', 20, 'bold'),
-                    borderwidth='4', activeforeground="#678983", activebackground="#B4FE98", width = 20, pady=10)
+                    borderwidth='4', activeforeground="#678983", activebackground="#B4FE98", width = 20, pady=10, command=withdraw_btn)
 
 b3 = tk.Button(login_frame, text="Deposite", font =
                ('calibri', 20, 'bold'),
-            borderwidth = '4', activeforeground="#678983", activebackground="#B4FE98", width = 20, pady=10)
+            borderwidth = '4', activeforeground="#678983", activebackground="#B4FE98", width = 20, pady=10, command=deposit_btn)
 
 b4 = tk.Button(login_frame, text="Transfer", font =
                ('calibri', 20, 'bold'),
@@ -318,6 +447,92 @@ t_3.grid(row=2,column=1,pady=10,columnspan=5)
 btn_1.grid(row=8,column=0,padx=10)
 btn_2.grid(row=8,column=1,padx=10)
 btn_3.grid(row=8,column=2,padx=10)
+
+
+# withdraw frame
+withdraw_frame = tk.Frame(root)
+lb1_withdraw = tk.Label(withdraw_frame, text="Account No", font =
+               ('calibri', 13, 'bold')).grid(row=0,column=0, pady = 2)
+lb2_withdraw = tk.Label(withdraw_frame, text="PIN", font =
+               ('calibri', 13, 'bold')).grid(row=1,column=0,pady = 2)
+lb3_withdraw = tk.Label(withdraw_frame, text="Name", font =
+               ('calibri', 13, 'bold')).grid(row=2,column=0,pady = 2)
+lb4_withdraw = tk.Label(withdraw_frame, text="Phone No", font =
+               ('calibri', 13, 'bold')).grid(row=3,column=0,pady = 2)
+lb5_withdraw = tk.Label(withdraw_frame, text="Amount", font =
+               ('calibri', 13, 'bold')).grid(row=4,column=0,pady = 2)
+t1_withdraw = tk.Entry(withdraw_frame)
+t2_withdraw = tk.Entry(withdraw_frame)
+t3_withdraw = tk.Entry(withdraw_frame)
+t4_withdraw = tk.Entry(withdraw_frame)
+t5_withdraw = tk.Entry(withdraw_frame)
+
+btn1_withdraw=tk.Button(withdraw_frame, text="Update ", font =
+               ('calibri', 11, 'bold'), width = 10, pady=5, borderwidth='3', activeforeground="black",
+                        activebackground="light green", command=update_withdraw)
+btn2_withdraw=tk.Button(withdraw_frame, text=" Cancel ", font =
+               ('calibri', 11, 'bold'), width=8, pady=5, borderwidth = '3', activeforeground="red",
+                        activebackground="pink", command=transfer_cancel_btn)
+btn3_withdraw=tk.Button(withdraw_frame, text=" Close ", font =
+               ('calibri', 11, 'bold'), width=10, pady=5, borderwidth = '3', activeforeground="red",
+                        activebackground="#E7EAB5", command=close_btn)
+btn4_withdraw=tk.Button(withdraw_frame, text=" Show ", font =
+               ('calibri', 11, 'bold'), width=9, pady=5, borderwidth = '3', activeforeground="black",
+                        activebackground="#E7EAB5", command=show_btn_withdraw)
+t1_withdraw.grid(row=0,column=1,pady=10,columnspan=5)
+t2_withdraw.grid(row=1,column=1,pady=10,columnspan=5)
+t3_withdraw.grid(row=2,column=1,pady=10,columnspan=5)
+t4_withdraw.grid(row=3,column=1,pady=10,columnspan=5)
+t5_withdraw.grid(row=4,column=1,pady=10,columnspan=5)
+
+btn1_withdraw.grid(row=8,column=0,padx=10)
+btn2_withdraw.grid(row=8,column=1,padx=10)
+btn3_withdraw.grid(row=8,column=2,padx=10)
+btn4_withdraw.grid(row=0,column=5,padx=2,columnspan=5)
+
+
+# deposit frame
+deposit_frame = tk.Frame(root)
+
+lb1_deposit = tk.Label(deposit_frame, text="Account No", font =
+               ('calibri', 13, 'bold')).grid(row=0,column=0, pady = 2)
+lb2_deposit = tk.Label(deposit_frame, text="PIN", font =
+               ('calibri', 13, 'bold')).grid(row=1,column=0,pady = 2)
+lb3_deposit = tk.Label(deposit_frame, text="Name", font =
+               ('calibri', 13, 'bold')).grid(row=2,column=0,pady = 2)
+lb4_deposit = tk.Label(deposit_frame, text="Phone No", font =
+               ('calibri', 13, 'bold')).grid(row=3,column=0,pady = 2)
+lb5_deposit = tk.Label(deposit_frame, text="Amount", font =
+               ('calibri', 13, 'bold')).grid(row=4,column=0,pady = 2)
+t1_deposit = tk.Entry(deposit_frame)
+t2_deposit = tk.Entry(deposit_frame)
+t3_deposit = tk.Entry(deposit_frame)
+t4_deposit = tk.Entry(deposit_frame)
+t5_deposit = tk.Entry(deposit_frame)
+
+btn1_deposit=tk.Button(deposit_frame, text="Update ", font =
+               ('calibri', 11, 'bold'), width = 10, pady=5, borderwidth = '3', activeforeground="black",
+                       activebackground="light green", command=update_deposit)
+btn2_deposit = tk.Button(deposit_frame, text=" Cancel ", font =
+               ('calibri', 11, 'bold'), width=8, pady=5, borderwidth = '3', activeforeground="red",
+                         activebackground="pink", command=transfer_cancel_btn)
+btn3_deposit=tk.Button(deposit_frame, text=" Close ", font =
+               ('calibri', 11, 'bold'), width=10, pady=5, borderwidth = '3', activeforeground="red",
+                       activebackground="#E7EAB5", command=close_btn)
+btn4_deposit=tk.Button(deposit_frame, text=" Show ", font =
+               ('calibri', 11, 'bold'), width=9, pady=5, borderwidth='3', activeforeground="black",
+                       activebackground="#E7EAB5", command=show_btn_deposit)
+t1_deposit.grid(row=0, column=1, pady=10, columnspan=5)
+t2_deposit.grid(row=1, column=1, pady=10, columnspan=5)
+t3_deposit.grid(row=2, column=1, pady=10, columnspan=5)
+t4_deposit.grid(row=3, column=1, pady=10, columnspan=5)
+t5_deposit.grid(row=4, column=1, pady=10, columnspan=5)
+
+btn1_deposit.grid(row=8, column=0, padx=10)
+btn2_deposit.grid(row=8, column=1, padx=10)
+btn3_deposit.grid(row=8, column=2, padx=10)
+btn4_deposit.grid(row=0, column=5, padx=2, columnspan=5)
+
 
 
 # closed frame
